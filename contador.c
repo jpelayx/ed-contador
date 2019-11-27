@@ -3,12 +3,13 @@
 #include <string.h>
 #include <locale.h>
 #include <time.h>
+#include "abp.h"
 
 #define MAX_LINHA 1000
 #define AVL 1
 #define ABP 2
 
-int readInput(char nome[], int modo) // ..., tipoAVL *avl, tipoABP *abp);
+int readInput(char nome[], tipoABP *abp, int modo, descritor *dscr) // ..., tipoAVL *avl, tipoABP *abp);
 {
   char separador[] = {" ,.&*%\?!;/-'@\"$#=><()][}{:\n\t─"};
   char *palavra, linha[MAX_LINHA];
@@ -26,8 +27,8 @@ int readInput(char nome[], int modo) // ..., tipoAVL *avl, tipoABP *abp);
       {
         //if (modo == AVL)
         //  insertAVL(palavra); insertABP(palavra)
-        //if (modo == ABP)
-        //  insertABP(palavra..)
+        if (modo == ABP)
+          abp = insereABP(abp, palavra, dscr);
         printf("%s\n", palavra);
         palavra = strtok(NULL, separador);
       }
@@ -85,7 +86,13 @@ int parseOps(char nome_entrada[], char nome_saida[], int modo){ //..., tipoAVL *
 int main(int argc, char *argv[]) //argc conta o n�mero de par�metros e argv armazena as strings correspondentes aos par�mentros digitados
 {
     int modo;
+    tipoABP *abp;
+    //tipoAVL ....
+    time_t t0, tf;
+    descritor dscr;
+    inicializaDscr(&dscr);
     setlocale(LC_ALL,""); //para imprimir corretamente na tela os caracteres acentuados
+    abp = NULL;
 
     if (argc!=4)  //o numero de parametros esp1erado � 3: nome do programa (argv[0]), nome do arq de entrada(argv[1]), nome do arq de saida(argv[2])
     {
@@ -93,22 +100,25 @@ int main(int argc, char *argv[]) //argc conta o n�mero de par�metros e argv 
         return 1;
     }
 
-    printf("Escolha o modo desejado:\n1 - AVL, 2 - ABP\n:");
-    scanf("%d\n", &modo);
+    printf("Escolha o modo desejado:\n1 - AVL, 2 - ABP: \n");
+    scanf("%d", &modo);
     while (modo!=AVL && modo!=ABP)
     {
       printf("Modo invalido\n");
       printf("Escolha o modo desejado:\n1 - AVL, 2 - ABP\n:");
-      scanf("%d\n", &modo);
+      scanf("%d", &modo);
     }
-
-    if(readInput(argv[1]))
+    time(&t0);
+    if(readInput(argv[1], abp, modo, &dscr))
     {
       printf("Erro ao abrir arquivo de entrada\n");
       return 1;
     }
+    time(&tf);
+    dscr.tempo_geracao = difftime(tf, t0);
+    printf("\n%f\n", dscr.tempo_geracao);
 
-    if(parseOps(argv[2], argv[3]))
+    if(parseOps(argv[2], argv[3], modo))
     {
       printf("Erro ao processar operacoes\n");
     }
