@@ -3,16 +3,19 @@
 #include <string.h>
 #include <locale.h>
 #include <time.h>
+#include "avl.h"
 #include "abp.h"
 
 #define MAX_LINHA 1000
 #define AVL 1
 #define ABP 2
 
-int readInput(char nome[], tipoABP *abp, int modo, descritor *dscr) // ..., tipoAVL *avl, tipoABP *abp);
+int readInput(char nome[], tipoABP *abp, AVLNode **avl, int modo, descritor *dscr) // ..., tipoAVL *avl, tipoABP *abp);
 {
+
   char separador[] = {" ,.&*%\?!;/-'@\"$#=><()][}{:\n\t─"};
   char *palavra, linha[MAX_LINHA];
+  int cond = 0;            //controle rotacao AVL
   FILE *arq;
 
   arq = fopen(nome, "r");
@@ -25,21 +28,25 @@ int readInput(char nome[], tipoABP *abp, int modo, descritor *dscr) // ..., tipo
       palavra = strtok(linha, separador);
       while(palavra)
       {
-        //if (modo == AVL)
-        //  insertAVL(palavra); insertABP(palavra)
+        if (modo == AVL) {
+            *avl = insereAVL(*avl, palavra, dscr, &cond);
+        }
         if (modo == ABP)
           abp = insereABP(abp, palavra, dscr);
-        printf("%s\n", palavra);
+//        printf("%s\n", palavra);
         palavra = strtok(NULL, separador);
       }
   }
+
   fclose(arq);
   return 0;
 }
 
-int parseOps(char nome_entrada[], char nome_saida[], int modo){ //..., tipoAVL *avl, tipoABP *abp)
+int parseOps(AVLNode *avl, char nome_entrada[], char nome_saida[], int modo){ //..., tipoAVL *avl, tipoABP *abp)
   char separador[] = {" ,.&*%\?!;/-'@\"$#=><()][}{:\n\t─"};
   char *operador, *ops[5], linha[MAX_LINHA];
+  int freq = 0;
+  char str_aux [MAX_PALAVRA];
   FILE *input, *output;
 
   input = fopen(nome_entrada, "r");
@@ -57,11 +64,23 @@ int parseOps(char nome_entrada[], char nome_saida[], int modo){ //..., tipoAVL *
         case 70:  // F
         case 102: // f
         //frequencia
+
           ops[0] = strtok(NULL, separador);
-          //if (modo == AVL)
+          strcpy(str_aux, ops[0]);
+
+
+          // a string op[0] vem quebrada de algum jeito bizarro que quebra linha e faz doidera
+
+
+          printf("\n\t%s", str_aux);
+
+          if (modo == AVL)
+              freq = freqAVL(avl, ops[0]);
           //if (modo == ABP)
           //freq = frequencia(arv, palavra)
-          printf("frequencia de %s\n", ops[0]);
+
+          printf("\nFrequência de %s: %d\n", str_aux, freq);
+
           break;
         case 67:
         case 99:
@@ -71,7 +90,7 @@ int parseOps(char nome_entrada[], char nome_saida[], int modo){ //..., tipoAVL *
           //if(modo == AVL)
           //if(modo == ABP) ou um switch sei la
           //contador(arv,ops[0], ops[1])
-          printf("Contador %s, %s\n",ops[0], ops[1]);
+          printf("\n\nContador %s, %s\n",ops[0], ops[1]);
           break;
       }
       operador = strtok(NULL, separador);
@@ -87,7 +106,7 @@ int main(int argc, char *argv[]) //argc conta o n�mero de par�metros e argv 
 {
     int modo;
     tipoABP *abp;
-    //tipoAVL ....
+    AVLNode *avl = NULL;
     time_t t0, tf;
     descritor dscr;
     inicializaDscr(&dscr);
@@ -109,16 +128,17 @@ int main(int argc, char *argv[]) //argc conta o n�mero de par�metros e argv 
       scanf("%d", &modo);
     }
     time(&t0);
-    if(readInput(argv[1], abp, modo, &dscr))
+    if(readInput(argv[1], abp, &avl, modo, &dscr))
     {
       printf("Erro ao abrir arquivo de entrada\n");
       return 1;
     }
+
     time(&tf);
     dscr.tempo_geracao = difftime(tf, t0);
-    printf("\n%f\n", dscr.tempo_geracao);
+    printf("\nTempo: %f\n", dscr.tempo_geracao);
 
-    if(parseOps(argv[2], argv[3], modo))
+    if(parseOps(avl, argv[2], argv[3], modo))
     {
       printf("Erro ao processar operacoes\n");
     }

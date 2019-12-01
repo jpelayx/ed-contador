@@ -3,6 +3,24 @@
 #include <string.h>
 #include "avl.h"
 
+int freqAVL(AVLNode *pt, char txt[MAX_PALAVRA]) {
+
+    if(pt == NULL) {
+        return 0;
+    }else{
+
+        if(strcmp(txt, pt->texto) < 0) {
+            freqAVL(pt->esq, txt);
+        }else if(strcmp(txt, pt->texto) > 0){
+            freqAVL(pt->dir, txt);
+        }else{
+            return pt->freq;
+        }
+
+    }
+
+}
+
 int alturaAVL(AVLNode *pt) {
 
     int alt_e, alt_d;
@@ -179,6 +197,8 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
 
     if (pt == NULL) {
 
+//        printf("\nNULL\n");
+
         pt = (AVLNode *) malloc(sizeof(AVLNode));   //aloca memória
         strcpy(pt->texto, txt);
         pt->fator = 0;
@@ -192,13 +212,13 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
 
         pt->freq = 1;
 
-        return pt;
-
     } else {
 
         if (strcmp(txt, pt->texto) < 0) {
 
             // esq
+
+//            printf("\nMenor\n");
 
             dscr->comparacoes += 1;
 
@@ -208,7 +228,7 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
             if(*cond) {
 
                 if(pt->fator == 1) {
-
+                    printf("\tpos");
                     pt = condPositive(pt, dscr, cond);
 
                 }else if(pt->fator == -1) {
@@ -219,16 +239,17 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
                 }else if(pt->fator == 0) {
 
                     pt->fator = 1;
+                    *cond = 0;
 
                 }
 
             }
 
-            return pt;
-
         }
 
         if (strcmp(txt, pt->texto) > 0) {
+
+//            printf("\nMaior\n");
 
             //dir
             dscr->comparacoes += 1;
@@ -239,7 +260,7 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
             if(*cond) {
 
                 if(pt->fator == -1) {
-
+//                    printf("\tpneg");
                     pt = condNegative(pt, dscr, cond);
 
                 }else if(pt->fator == 1) {
@@ -250,24 +271,26 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
                 }else if(pt->fator == 0) {
 
                     pt->fator = -1;
+                    *cond = 0;
 
                 }
 
             }
 
-            return pt;
-
         }
 
         if (strcmp(txt, pt->texto) == 0) {
 
+//            printf("\nIgual\n");
+
             // add freq
             pt->freq += 1;
 
-            dscr->comparacoes += 1;
+            printf("\t%s :: %d\n", pt->texto, pt->freq);
 
-            return pt;
+            dscr->comparacoes += 1;
 
         }
     }
+    return pt;
 }

@@ -22,3 +22,4 @@ AVLNode *rdeAVL(AVLNode *pt, descritor *dscr);
 int alturaAVL(AVLNode *pt);
 int calcFatorAVL(AVLNode *pt);
 int isAVL(AVLNode *pt);
+int freqAVL(AVLNode *pt, char txt[MAX_PALAVRA]);
