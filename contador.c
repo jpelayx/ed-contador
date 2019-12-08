@@ -3,14 +3,28 @@
 #include <string.h>
 #include <locale.h>
 #include <time.h>
+#include <ctype.h>
 #include "avl.h"
 #include "abp.h"
+#include "abf.h"
 
 #define MAX_LINHA 1000
 #define AVL 1
 #define ABP 2
 
-int readInput(char nome[], tipoABP *abp, AVLNode **avl, int modo, descritor *dscr) // ..., tipoAVL *avl, tipoABP *abp);
+char *strlwr(char *str)
+{
+    unsigned char *p = (unsigned char *)str;
+
+    while (*p) {
+        *p = tolower((unsigned char)*p);
+        p++;
+    }
+
+    return str;
+}
+
+int readInput(char nome[], tipoABP **abp, AVLNode **avl, int modo, descritor *dscr) // ..., tipoAVL *avl, tipoABP *abp);
 {
 
   char separador[] = {" ,.&*%\?!;/-'@\"$#=><()][}{:\n\t─"};
@@ -25,15 +39,15 @@ int readInput(char nome[], tipoABP *abp, AVLNode **avl, int modo, descritor *dsc
 
   while (fgets(linha, MAX_LINHA, arq))
   {
-      palavra = strtok(linha, separador);
+      palavra = strtok(linha, separador);;
+
       while(palavra)
       {
         if (modo == AVL) {
-            *avl = insereAVL(*avl, palavra, dscr, &cond);
+            *avl = insereAVL(*avl, strlwr(palavra), dscr, &cond);
         }
         if (modo == ABP)
-          abp = insereABP(abp, palavra, dscr);
-//        printf("%s\n", palavra);
+            *abp = insereABP(*abp, strlwr(palavra), dscr);
         palavra = strtok(NULL, separador);
       }
   }
@@ -42,17 +56,17 @@ int readInput(char nome[], tipoABP *abp, AVLNode **avl, int modo, descritor *dsc
   return 0;
 }
 
-int parseOps(AVLNode *avl, char nome_entrada[], char nome_saida[], int modo){ //..., tipoAVL *avl, tipoABP *abp)
-  char separador[] = {" ,.&*%\?!;/-'@\"$#=><()][}{:\n\t─"};
+int parseOps(tipoABP *abp, AVLNode *avl, ABFreq *abf, char nome_entrada[], FILE *output, int modo, descritor *dscr){ //..., tipoAVL *avl, tipoABP *abp)
+  char separador[] = {" ,.&*%\?!;/-'@\"$#=><()][}{:\n\t\r─"};
   char *operador, *ops[5], linha[MAX_LINHA];
+  char str_aux[MAX_PALAVRA];
   int freq = 0;
-  char str_aux [MAX_PALAVRA];
-  FILE *input, *output;
+  char str_auxchr [MAX_PALAVRA];
+  FILE *input;
 
   input = fopen(nome_entrada, "r");
-  output = fopen(nome_saida, "w");
 
-  if (input==NULL || output==NULL)
+  if (input==NULL)
     //ERRO AO ABRIR ARQUIVOS
     return 1;
 
@@ -66,38 +80,32 @@ int parseOps(AVLNode *avl, char nome_entrada[], char nome_saida[], int modo){ //
         //frequencia
 
           ops[0] = strtok(NULL, separador);
-          strcpy(str_aux, ops[0]);
-
-
-          // a string op[0] vem quebrada de algum jeito bizarro que quebra linha e faz doidera
-
-
-          printf("\n\t%s", str_aux);
 
           if (modo == AVL)
-              freq = freqAVL(avl, ops[0]);
-          //if (modo == ABP)
-          //freq = frequencia(arv, palavra)
+              freq = freqAVL(avl, ops[0], dscr);
+          if (modo == ABP)
+              freq = freqABP(abp, ops[0], dscr);
 
-          printf("\nFrequência de %s: %d\n", str_aux, freq);
-
+          fprintf(output, "\n\t\t[Frequencia de %s: %d]\n", ops[0], freq);
+          printf("\n\t\t[Frequência de %s: %d]\n", ops[0], freq);
           break;
         case 67:
         case 99:
         //contador
+
           ops[0] = strtok(NULL, separador);
           ops[1] = strtok(NULL, separador);
-          //if(modo == AVL)
-          //if(modo == ABP) ou um switch sei la
-          //contador(arv,ops[0], ops[1])
-          printf("\n\nContador %s, %s\n",ops[0], ops[1]);
+
+          fprintf(output, "\n\n\t\t[Contador %d:%s]\n", atoi(ops[0]), ops[1]);
+          printf("\n\n\t\t[Contador %d:%s]\n", atoi(ops[0]), ops[1]);
+          buscaPorRange(abf, atoi(ops[0]), atoi(ops[1]), output);
+
           break;
       }
       operador = strtok(NULL, separador);
     }
   }
   fclose(input);
-  fclose(output);
   return 0;
 }
 
@@ -106,12 +114,26 @@ int main(int argc, char *argv[]) //argc conta o n�mero de par�metros e argv 
 {
     int modo;
     tipoABP *abp;
-    AVLNode *avl = NULL;
+
+    AVLNode *avl;
+    avl = NULL;
+
+    ABFreq *abf;
+    abf = NULL;
+
     time_t t0, tf;
     descritor dscr;
     inicializaDscr(&dscr);
-    setlocale(LC_ALL,""); //para imprimir corretamente na tela os caracteres acentuados
+    setlocale(LC_ALL,"Portuguese_Brasil"); //para imprimir corretamente na tela os caracteres acentuados
     abp = NULL;
+
+    FILE *output;
+
+    output = fopen(argv[3], "w");
+
+    if (output==NULL)
+        //ERRO AO ABRIR ARQUIVOS
+        return 1;
 
     if (argc!=4)  //o numero de parametros esp1erado � 3: nome do programa (argv[0]), nome do arq de entrada(argv[1]), nome do arq de saida(argv[2])
     {
@@ -128,21 +150,56 @@ int main(int argc, char *argv[]) //argc conta o n�mero de par�metros e argv 
       scanf("%d", &modo);
     }
     time(&t0);
-    if(readInput(argv[1], abp, &avl, modo, &dscr))
+    if(readInput(argv[1], &abp, &avl, modo, &dscr))
     {
       printf("Erro ao abrir arquivo de entrada\n");
       return 1;
     }
 
-    time(&tf);
-    dscr.tempo_geracao = difftime(tf, t0);
-    printf("\nTempo: %f\n", dscr.tempo_geracao);
-
-    if(parseOps(avl, argv[2], argv[3], modo))
-    {
-      printf("Erro ao processar operacoes\n");
+    if(modo == AVL) {
+        AVLpopulaABF(&abf, avl, &dscr);
+    }else if(modo == ABP) {
+        ABPpopulaABF(&abf, abp, &dscr);
     }
 
-    printf("Arquivo %s gerado com sucesso\n", argv[3]);
+    time(&tf);
+    dscr.tempo_geracao = difftime(tf, t0);
+
+    fprintf(output, "\n\n[Relatorio]===========================");
+
+    if(modo == AVL) {
+
+        fprintf(output, "\n\n\t[Estatisticas AVL]=======================\n\n");
+        fprintf(output, "\t\t[Rotacoes: %d]\n", dscr.rotacoes);
+        fprintf(output, "\t\t[Comparacoes: %d]\n", dscr.comparacoes);
+        fprintf(output, "\t\t[Nodos: %d]\n", dscr.nodos);
+        fprintf(output, "\t\t[Altura: %d]\n", calcMaiorAlturaAVL(avl, &dscr));
+        fprintf(output, "\t\t[Fator: %d]\n", calcMaiorFatorAVL(avl, &dscr));
+        fprintf(output, "\t\t[Tempo de Geracao: %.5fs]", dscr.tempo_geracao);
+        fprintf(output, "\n\n\t=========================================");
+
+    } else if(modo == ABP) {
+
+        fprintf(output, "\n\n\t[Estatisticas ABP]=======================\n\n");
+        fprintf(output, "\t\t[Comparacoes: %d]\n", dscr.comparacoes);
+        fprintf(output, "\t\t[Nodos: %d]\n", dscr.nodos);
+        fprintf(output, "\t\t[Altura: %d]\n", calcMaiorAlturaABP(abp, &dscr));
+        fprintf(output, "\t\t[Tempo de Geracao: %.5fs]", dscr.tempo_geracao);
+        fprintf(output, "\n\n\t=========================================");
+
+    }
+
+    fprintf(output, "\n\n\t[Operacoes]==============================\n\n");
+    if(parseOps(abp, avl, abf, argv[2], output, modo, &dscr))
+    {
+      printf("\t\t[!]Erro ao processar operações.");
+    }
+    fprintf(output, "\n\n\t=========================================\n\n");
+
+    fprintf(output, "\n\n=================================================\n\n");
+
+
+    fclose(output);
+    printf("Arquivo %s gerado com sucesso.\n", argv[3]);
     return 0;
 }

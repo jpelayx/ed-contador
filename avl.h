@@ -1,6 +1,9 @@
 #include "descritor.h"
 #define MAX_PALAVRA 50
 
+#ifndef AVL_H
+#define AVL_H
+
 typedef struct AVLNode {
 
     char texto[MAX_PALAVRA];
@@ -12,14 +15,18 @@ typedef struct AVLNode {
 } AVLNode;
 
 AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *cond);
-AVLNode *condPositive(AVLNode *pt, descritor *dscr, int *cond);
-AVLNode *condNegative(AVLNode *pt, descritor *dscr, int *cond);
-AVLNode *rdAVL(AVLNode *pt, descritor *dscr);
-AVLNode *reAVL(AVLNode *pt, descritor *dscr);
-AVLNode *rddAVL(AVLNode *pt, descritor *dscr);
-AVLNode *rdeAVL(AVLNode *pt, descritor *dscr);
+AVLNode *caso1(AVLNode *pt, descritor *dscr, int *cond);
+AVLNode *caso2(AVLNode *pt, descritor *dscr, int *cond);
+AVLNode *rotD(AVLNode *pt, descritor *dscr);
+AVLNode *rotE(AVLNode *pt, descritor *dscr);
+AVLNode *rotDD(AVLNode *pt, descritor *dscr);
+AVLNode *rotDE(AVLNode *pt, descritor *dscr);
 
-int alturaAVL(AVLNode *pt);
-int calcFatorAVL(AVLNode *pt);
-int isAVL(AVLNode *pt);
-int freqAVL(AVLNode *pt, char txt[MAX_PALAVRA]);
+int alturaAVL(AVLNode *pt, descritor *dscr);
+int calcFatorAVL(AVLNode *pt, descritor *dscr);
+int isAVL(AVLNode *pt, descritor *dscr);
+int freqAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr);
+int calcMaiorFatorAVL(AVLNode *pt, descritor *dscr);
+int calcMaiorAlturaAVL(AVLNode *pt, descritor *dscr);
+
+#endif
