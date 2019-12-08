@@ -87,7 +87,6 @@ int parseOps(tipoABP *abp, AVLNode *avl, ABFreq *abf, char nome_entrada[], FILE 
               freq = freqABP(abp, ops[0], dscr);
 
           fprintf(output, "\n\t\t[Frequencia de %s: %d]\n", ops[0], freq);
-          printf("\n\t\t[Frequência de %s: %d]\n", ops[0], freq);
           break;
         case 67:
         case 99:
@@ -97,7 +96,6 @@ int parseOps(tipoABP *abp, AVLNode *avl, ABFreq *abf, char nome_entrada[], FILE 
           ops[1] = strtok(NULL, separador);
 
           fprintf(output, "\n\n\t\t[Contador %d:%s]\n", atoi(ops[0]), ops[1]);
-          printf("\n\n\t\t[Contador %d:%s]\n", atoi(ops[0]), ops[1]);
           buscaPorRange(abf, atoi(ops[0]), atoi(ops[1]), output);
 
           break;
@@ -190,16 +188,18 @@ int main(int argc, char *argv[]) //argc conta o n�mero de par�metros e argv 
     }
 
     fprintf(output, "\n\n\t[Operacoes]==============================\n\n");
+
     if(parseOps(abp, avl, abf, argv[2], output, modo, &dscr))
     {
       printf("\t\t[!]Erro ao processar operações.");
     }
+
     fprintf(output, "\n\n\t=========================================\n\n");
 
     fprintf(output, "\n\n=================================================\n\n");
 
 
     fclose(output);
-    printf("Arquivo %s gerado com sucesso.\n", argv[3]);
+    printf("\n[!] Arquivo %s gerado com sucesso.\n", argv[3]);
     return 0;
 }

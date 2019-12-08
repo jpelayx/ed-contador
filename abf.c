@@ -70,7 +70,6 @@ void buscaPorRange(ABFreq *abf, int min, int max, FILE *output) {
             if(abf->freq <= max) {
                 buscaPorRange(abf->esq, min, max, output);
                 fprintf(output, "\n\t\t\t%s  ::  %d", abf->texto, abf->freq);
-                printf("\n\t\t\t%s  ::  %d", abf->texto, abf->freq);
                 buscaPorRange(abf->dir, min, max, output);
             }else{
 //                printf("\n>");
