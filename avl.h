@@ -4,6 +4,8 @@
 #ifndef AVL_H
 #define AVL_H
 
+// Estrutura de AVL do algoritmo
+
 typedef struct AVLNode {
 
     char texto[MAX_PALAVRA];

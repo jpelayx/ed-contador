@@ -1,4 +1,7 @@
 #include "descritor.h"
+
+// Inicialização da estrutura
+
 void inicializaDscr(descritor *dscr)
 {
   dscr->nodos = 0;

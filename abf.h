@@ -3,6 +3,11 @@
 #include "avl.h"
 #define MAX_PALAVRA 50
 
+// ABF é uma "árvore binária de frequencia", usada para armazenar as palavras
+// coletadas em uma ABP ordenada por frequencia, a fim de facilitar
+// a implementacao da operacao "contador"
+// Para isso, guarda apenas as informações de frequencia e texto dos nodos
+
 typedef struct ABFreq {
     int freq;
     char texto[MAX_PALAVRA];

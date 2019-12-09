@@ -4,20 +4,26 @@
 #include "avl.h"
 #include "abf.h"
 
+// Retorna a frequencia do nodo que possui a palavra entrada
+
 int freqAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr) {
 
     if(pt == NULL) {
+	// Palavra nao encontrada
         dscr->comparacoes ++;
         return 0;
     }else{
         dscr->comparacoes ++;
         if(strcmp(txt, pt->texto) < 0) {
+	    // Palavra está à esquerda
             dscr->comparacoes ++;
             freqAVL(pt->esq, txt, dscr);
         }else if(strcmp(txt, pt->texto) > 0){
+	    // Palavra está à direita
             dscr->comparacoes ++;
             freqAVL(pt->dir, txt, dscr);
         }else{
+	    // Palavra encontrada
             dscr->comparacoes ++;
             return pt->freq;
         }
@@ -26,14 +32,18 @@ int freqAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr) {
 
 }
 
+// Calcula a altura de um nodo da AVL
+
 int alturaAVL(AVLNode *pt, descritor *dscr) {
 
     int alt_e, alt_d;
 
     if(pt == NULL) {
+	// nodo vazio
         dscr->comparacoes ++;
         return 0;
     }else{
+	// Calcula altura recursivamente
         dscr->comparacoes ++;
         alt_e = alturaAVL(pt->esq, dscr);
         alt_d = alturaAVL(pt->dir, dscr);
@@ -46,42 +56,56 @@ int alturaAVL(AVLNode *pt, descritor *dscr) {
 
 }
 
+// Retorna a maior altura da AVL
+
 int calcMaiorAlturaAVL(AVLNode *pt, descritor *dscr) {
     int maior = 0;
     if(pt == NULL) {
+	// nodo vazio
         dscr->comparacoes ++;
         return 0;
     }else{
         if(alturaAVL(pt, dscr) > maior) {
+	    // Atualiza valor de maior
             dscr->comparacoes ++;
             maior = alturaAVL(pt, dscr);
         }
+	// Recursões
         calcMaiorAlturaAVL(pt->esq, dscr);
         calcMaiorAlturaAVL(pt->dir, dscr);
         return maior;
     }
 }
 
+// Calcula o fator de um nodo da AVL
+
 int calcFatorAVL(AVLNode *pt, descritor *dscr) {
     return (alturaAVL(pt->esq, dscr) - alturaAVL(pt->dir, dscr));
 }
 
+// Retorna o maior fator da AVL
+
 int calcMaiorFatorAVL(AVLNode *pt, descritor *dscr) {
     int maior = 0;
     if(pt == NULL) {
+	// nodo vazio
         dscr->comparacoes ++;
         return 0;
     }else{
         dscr->comparacoes ++;
         if(abs(calcFatorAVL(pt, dscr)) > maior) {
+	    // Atualiza valor de maior
             dscr->comparacoes ++;
             maior = calcFatorAVL(pt, dscr);
         }
+	// Recursões
         calcMaiorFatorAVL(pt->esq, dscr);
         calcMaiorFatorAVL(pt->dir, dscr);
         return maior;
     }
 }
+
+// (bool) Verifica se a arvore permanece com propriedades de AVL
 
 int isAVL(AVLNode *pt, descritor *dscr) {
 
@@ -92,9 +116,11 @@ int isAVL(AVLNode *pt, descritor *dscr) {
         return 1;
     }else{
         dscr->comparacoes ++;
+	// Calculo das alturas dos filhos
         alt_e = alturaAVL(pt->esq, dscr);
         alt_d = alturaAVL(pt->dir, dscr);
 
+	// Verificacoes e recursoes
         return ((alt_e - alt_d < 2)
             && (alt_d - alt_e < 2)
             && (isAVL(pt->esq, dscr))
@@ -150,6 +176,7 @@ AVLNode *rotDD(AVLNode *pt, descritor *dscr) {
     pt->esq = ptv->dir;
     ptv->dir = pt;
 
+    // Correção de fatores
     if (ptv->fator == 1) {
         dscr->comparacoes ++;
         pt->fator = -1;
@@ -186,6 +213,7 @@ AVLNode *rotDE(AVLNode *pt, descritor *dscr) {
     pt->dir = ptv->esq;
     ptv->esq = pt;
 
+    // Correção de fatores
     if (ptv->fator == -1) {
         pt->fator = 1;
     } else {
@@ -205,11 +233,14 @@ AVLNode *rotDE(AVLNode *pt, descritor *dscr) {
 
 }
 
+// Caso AVL desbalanceada à esquerda
+
 AVLNode *caso1(AVLNode *pt, descritor *dscr, int *cond) {
 
     AVLNode *ptu;
 
     ptu = pt->esq;
+    // Verifica qual rotação é necessária para correção de fatores
     if(ptu->fator == 1) {
         dscr->comparacoes ++;
         pt = rotD(pt, dscr);
@@ -225,12 +256,15 @@ AVLNode *caso1(AVLNode *pt, descritor *dscr, int *cond) {
 
 }
 
+// Caso AVL desbalanceada à direita
+
 AVLNode *caso2(AVLNode *pt, descritor *dscr, int *cond) {
 
     AVLNode *ptu;
 
     ptu = pt->dir;
 
+    // Verifica qual rotação é necessária para correção de fatores
     if(ptu->fator == -1) {
         dscr->comparacoes ++;
         pt = rotE(pt, dscr);
@@ -245,6 +279,8 @@ AVLNode *caso2(AVLNode *pt, descritor *dscr, int *cond) {
     return pt;
 
 }
+
+// Função de inserção
 
 AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *cond) {
 
@@ -263,9 +299,12 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
 
     } else if((strcmp(txt, pt->texto) < 0)) {
 
+	// Nodo deve ser inserido à esquerda
+
         pt->esq = insereAVL(pt->esq, txt, dscr, cond);
 
         // veririca se voltou com cod. cond. ativo
+	// (houve inserção e pode ser necessárias rotações e correção de fatores)
         if(*cond) {
             switch (pt->fator) {
                 case -1:
@@ -276,6 +315,7 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
                     pt->fator = 1;
                     break;
                 case 1:
+		    // Rotações necessárias para correção de fatores
                     pt = caso1(pt, dscr, cond);
                     break;
             }
@@ -285,8 +325,12 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
 
     }else if((strcmp(txt, pt->texto) > 0)) {
 
+	// Nodo deve ser inserido à direita
+
         pt->dir = insereAVL(pt->dir, txt, dscr, cond);
 
+        // veririca se voltou com cod. cond. ativo
+	// (houve inserção e pode ser necessárias rotações e correção de fatores)
         if(*cond) {
             switch (pt->fator) {
                 case 1:
@@ -297,6 +341,7 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
                     pt->fator = -1;
                     break;
                 case -1:
+		    // Rotações necessárias para correção de fatores
                     pt = caso2(pt, dscr, cond);
                     break;
             }
@@ -306,8 +351,9 @@ AVLNode *insereAVL(AVLNode *pt, char txt[MAX_PALAVRA], descritor *dscr, int *con
 
     }else{
 
-        // ja contem
+        // ja contem, incrementa frequencia
 
+	// Não houve inserção, sem necessidade de rotação
         *cond = 0;
 
         pt->freq += 1;

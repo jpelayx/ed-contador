@@ -4,6 +4,8 @@
 #ifndef ABP_H
 #define ABP_H
 
+// Estrutura da ABP usada no algoritmo
+
 struct _ABP{
   char palavra[MAX_PALAVRA];
   int frequencia;
